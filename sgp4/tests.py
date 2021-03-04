@@ -1,5 +1,6 @@
 """Test suite for SGP4."""
 
+
 try:
     from unittest2 import TestCase, main
 except:
@@ -64,7 +65,7 @@ VANGUARD_ATTRS = {
 VANGUARD_EPOCH = 18441.7849506199999894
 
 # Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
-if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
+if sys.version_info[:2] in [(2, 7), (2, 6)]:
     TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
 
 # ------------------------------------------------------------------------
@@ -525,8 +526,7 @@ def test_satrec_against_tcppver_using_tsince():
 def test_legacy_against_tcppver():
 
     def make_legacy_satellite(line1, line2):
-        sat = io.twoline2rv(line1, line2, wgs72)
-        return sat
+        return io.twoline2rv(line1, line2, wgs72)
 
     def run_legacy_sgp4(satrec, tsince):
         r, v = sgp4(satrec, tsince)
@@ -628,9 +628,8 @@ def generate_test_output(twoline2rv, invoke, error_list):
 
         yield '%ld xx\n' % (satrec.satnum,)
 
-        for line in generate_satellite_output(
-                satrec, invoke, line2, error_list):
-            yield line
+        yield from generate_satellite_output(
+                satrec, invoke, line2, error_list)
 
 def generate_satellite_output(satrec, invoke, line2, error_list):
     """Print a data line for each time in line2's start/stop/step field."""
@@ -648,13 +647,13 @@ def generate_satellite_output(satrec, invoke, line2, error_list):
 
     tsince = tstart
     while tsince <= tend:
-        if tsince == tstart == 0.0:
+        if tsince == tsince == 0.0:
             tsince += tstep
             continue  # avoid duplicating the first line
 
         e, r, v = invoke(satrec, tsince)
 
-        if e != 0 and e != (0, None):
+        if e not in [0, (0, None)]:
             error_list.append(e)
             return
         yield format_long_line(satrec, tsince, mu, r, v)
@@ -663,7 +662,7 @@ def generate_satellite_output(satrec, invoke, line2, error_list):
 
     if tsince - tend < tstep - 1e-6:  # do not miss last line!
         e, r, v = invoke(satrec, tend)
-        if e != 0 and e != (0, None):
+        if e not in [0, (0, None)]:
             error_list.append(e)
             return
         yield format_long_line(satrec, tend, mu, r, v)
