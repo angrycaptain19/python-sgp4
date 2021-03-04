@@ -113,10 +113,8 @@ class Satrec(object):
             from numpy import array
             Satrec.array = array
 
-        results = []
         z = list(zip(jd, fr))
-        for jd_i, fr_i in z:
-            results.append(self.sgp4(jd_i, fr_i))
+        results = [self.sgp4(jd_i, fr_i) for jd_i, fr_i in z]
         elist, rlist, vlist = zip(*results)
 
         e = array(elist)

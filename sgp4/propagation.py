@@ -229,17 +229,17 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
 
      if init == 'n':
 
-       pe    = pe - peo;
-       pinc  = pinc - pinco;
-       pl    = pl - plo;
-       pgh   = pgh - pgho;
-       ph    = ph - pho;
-       inclp = inclp + pinc;
-       ep    = ep + pe;
-       sinip = sin(inclp);
-       cosip = cos(inclp);
+          pe    = pe - peo;
+          pinc  = pinc - pinco;
+          pl    = pl - plo;
+          pgh   = pgh - pgho;
+          ph    = ph - pho;
+          inclp = inclp + pinc;
+          ep    = ep + pe;
+          sinip = sin(inclp);
+          cosip = cos(inclp);
 
-       """
+          """
        /* ----------------- apply periodics directly ------------ */
        //  sgp4fix for lyddane choice
        //  strn3 used original inclination - this is technically feasible
@@ -251,44 +251,41 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
        //  use next line for gsfc version and perturbed inclination
        """
 
-       if inclp >= 0.2:
+          if inclp >= 0.2:
 
-           ph /= sinip
-           pgh -= cosip * ph
-           argpp += pgh
-           nodep += ph
-           mp += pl
+               ph /= sinip
+               pgh -= cosip * ph
+               argpp += pgh
+               nodep += ph
+               mp += pl
 
-       else:
+          else:
 
-           #  ---- apply periodics with lyddane modification ----
-           sinop  = sin(nodep);
-           cosop  = cos(nodep);
-           alfdp  = sinip * sinop;
-           betdp  = sinip * cosop;
-           dalf   =  ph * cosop + pinc * cosip * sinop;
-           dbet   = -ph * sinop + pinc * cosip * cosop;
-           alfdp  = alfdp + dalf;
-           betdp  = betdp + dbet;
-           nodep  = nodep % twopi if nodep >= 0.0 else -(-nodep % twopi)
-           #   sgp4fix for afspc written intrinsic functions
-           #  nodep used without a trigonometric function ahead
-           if nodep < 0.0 and opsmode == 'a':
-               nodep = nodep + twopi;
-           xls = mp + argpp + pl + pgh + (cosip - pinc * sinip) * nodep
-           xnoh   = nodep;
-           nodep  = atan2(alfdp, betdp);
-           #   sgp4fix for afspc written intrinsic functions
-           #  nodep used without a trigonometric function ahead
-           if nodep < 0.0 and opsmode == 'a':
-               nodep = nodep + twopi;
-           if fabs(xnoh - nodep) > pi:
-             if nodep < xnoh:
-                nodep = nodep + twopi;
-             else:
-                nodep = nodep - twopi;
-           mp += pl
-           argpp = xls - mp - cosip * nodep;
+               #  ---- apply periodics with lyddane modification ----
+               sinop  = sin(nodep);
+               cosop  = cos(nodep);
+               alfdp  = sinip * sinop;
+               betdp  = sinip * cosop;
+               dalf   =  ph * cosop + pinc * cosip * sinop;
+               dbet   = -ph * sinop + pinc * cosip * cosop;
+               alfdp  = alfdp + dalf;
+               betdp  = betdp + dbet;
+               nodep  = nodep % twopi if nodep >= 0.0 else -(-nodep % twopi)
+               #   sgp4fix for afspc written intrinsic functions
+               #  nodep used without a trigonometric function ahead
+               if nodep < 0.0 and opsmode == 'a':
+                   nodep = nodep + twopi;
+               xls = mp + argpp + pl + pgh + (cosip - pinc * sinip) * nodep
+               xnoh   = nodep;
+               nodep  = atan2(alfdp, betdp);
+               #   sgp4fix for afspc written intrinsic functions
+               #  nodep used without a trigonometric function ahead
+               if nodep < 0.0 and opsmode == 'a':
+                   nodep = nodep + twopi;
+               if fabs(xnoh - nodep) > pi:
+                    nodep = nodep + twopi if nodep < xnoh else nodep - twopi
+               mp += pl
+               argpp = xls - mp - cosip * nodep;
 
      return ep, inclp, nodep, argpp, mp
 

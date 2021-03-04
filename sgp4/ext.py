@@ -120,20 +120,18 @@ def dot(x, y):
 def angle(vec1, vec2):
 
      small     = 0.00000001;
-     undefined = 999999.1;
-
      magv1 = mag(vec1);
      magv2 = mag(vec2);
 
-     if magv1*magv2 > small*small:
+     if magv1 * magv2 > small**2:
 
-         temp= dot(vec1,vec2) / (magv1*magv2);
-         if fabs(temp) > 1.0:
-             temp = copysign(1.0, temp)
-         return acos( temp );
+          temp= dot(vec1,vec2) / (magv1*magv2);
+          if fabs(temp) > 1.0:
+              temp = copysign(1.0, temp)
+          return acos( temp );
 
      else:
-         return undefined;
+          return 999999.1;
 
 """
 /* -----------------------------------------------------------------------------
@@ -291,8 +289,6 @@ def rv2coe(r, v, mu):
      halfpi = 0.5 * pi;
      small  = 0.00000001;
      undefined = 999999.1;
-     infinite  = 999999.9;
-
      #  -------------------------  implementation   -----------------
      magr = mag( r );
      magv = mag( v );
@@ -302,137 +298,136 @@ def rv2coe(r, v, mu):
      magh = mag( hbar );
      if magh > small:
 
-         nbar[0]= -hbar[1];
-         nbar[1]=  hbar[0];
-         nbar[2]=   0.0;
-         magn = mag( nbar );
-         c1 = magv*magv - mu /magr;
-         rdotv = dot( r,v );
-         for i in range(0, 3):
-             ebar[i]= (c1*r[i] - rdotv*v[i])/mu;
-         ecc = mag( ebar );
+          nbar[0]= -hbar[1];
+          nbar[1]=  hbar[0];
+          nbar[2]=   0.0;
+          magn = mag( nbar );
+          c1 = magv*magv - mu /magr;
+          rdotv = dot( r,v );
+          for i in range(3):
+               ebar[i]= (c1*r[i] - rdotv*v[i])/mu;
+          ecc = mag( ebar );
 
-         #  ------------  find a e and semi-latus rectum   ----------
-         sme= ( magv*magv*0.5  ) - ( mu /magr );
-         if fabs( sme ) > small:
-             a= -mu  / (2.0 *sme);
-         else:
-             a= infinite;
-         p = magh*magh/mu;
+          #  ------------  find a e and semi-latus rectum   ----------
+          sme= ( magv*magv*0.5  ) - ( mu /magr );
+          infinite  = 999999.9;
 
-         #  -----------------  find inclination   -------------------
-         hk= hbar[2]/magh;
-         incl= acos( hk );
+          a = -mu  / (2.0 *sme) if fabs( sme ) > small else infinite
+          p = magh*magh/mu;
 
-         #  --------  determine type of orbit for later use  --------
-         #  ------ elliptical, parabolic, hyperbolic inclined -------
-         typeorbit = 'ei'
-         if ecc < small:
+          #  -----------------  find inclination   -------------------
+          hk= hbar[2]/magh;
+          incl= acos( hk );
 
-             #  ----------------  circular equatorial ---------------
-             if  incl < small or fabs(incl-pi) < small:
-                 typeorbit = 'ce'
-             else:
-                 #  --------------  circular inclined ---------------
-                 typeorbit = 'ci'
+          #  --------  determine type of orbit for later use  --------
+          #  ------ elliptical, parabolic, hyperbolic inclined -------
+          typeorbit = 'ei'
+          if ecc < small:
 
-         else:
+              #  ----------------  circular equatorial ---------------
+              if  incl < small or fabs(incl-pi) < small:
+                  typeorbit = 'ce'
+              else:
+                  #  --------------  circular inclined ---------------
+                  typeorbit = 'ci'
 
-             #  - elliptical, parabolic, hyperbolic equatorial --
-             if incl < small or fabs(incl-pi) < small:
-                 typeorbit = 'ee'
+          else:
 
-         #  ----------  find longitude of ascending node ------------
-         if magn > small:
+              #  - elliptical, parabolic, hyperbolic equatorial --
+              if incl < small or fabs(incl-pi) < small:
+                  typeorbit = 'ee'
 
-             temp= nbar[0] / magn;
-             if fabs(temp) > 1.0:
-                 temp = copysign(1.0, temp)
-             omega= acos( temp );
-             if nbar[1] < 0.0:
-                 omega= twopi - omega;
+          #  ----------  find longitude of ascending node ------------
+          if magn > small:
 
-         else:
-             omega= undefined;
+              temp= nbar[0] / magn;
+              if fabs(temp) > 1.0:
+                  temp = copysign(1.0, temp)
+              omega= acos( temp );
+              if nbar[1] < 0.0:
+                  omega= twopi - omega;
 
-         #  ---------------- find argument of perigee ---------------
-         if typeorbit == 'ei':
+          else:
+              omega= undefined;
 
-             argp = angle( nbar,ebar);
-             if ebar[2] < 0.0:
-                 argp= twopi - argp;
+          #  ---------------- find argument of perigee ---------------
+          if typeorbit == 'ei':
 
-         else:
-             argp= undefined;
+              argp = angle( nbar,ebar);
+              if ebar[2] < 0.0:
+                  argp= twopi - argp;
 
-         #  ------------  find true anomaly at epoch    -------------
-         if typeorbit[0] == 'e':
+          else:
+              argp= undefined;
 
-             nu =  angle( ebar,r);
-             if rdotv < 0.0:
-                 nu= twopi - nu;
+          #  ------------  find true anomaly at epoch    -------------
+          if typeorbit[0] == 'e':
 
-         else:
-             nu= undefined;
+              nu =  angle( ebar,r);
+              if rdotv < 0.0:
+                  nu= twopi - nu;
 
-         #  ----  find argument of latitude - circular inclined -----
-         if typeorbit == 'ci':
+          else:
+              nu= undefined;
 
-             arglat = angle( nbar,r );
-             if r[2] < 0.0:
-                 arglat= twopi - arglat;
-             m = arglat;
+          #  ----  find argument of latitude - circular inclined -----
+          if typeorbit == 'ci':
 
-         else:
-             arglat= undefined;
+              arglat = angle( nbar,r );
+              if r[2] < 0.0:
+                  arglat= twopi - arglat;
+              m = arglat;
 
-         #  -- find longitude of perigee - elliptical equatorial ----
-         if ecc > small and typeorbit == 'ee':
+          else:
+              arglat= undefined;
 
-             temp= ebar[0]/ecc;
-             if fabs(temp) > 1.0:
-                 temp = copysign(1.0, temp)
-             lonper= acos( temp );
-             if ebar[1] < 0.0:
-                 lonper= twopi - lonper;
-             if incl > halfpi:
-                 lonper= twopi - lonper;
+          #  -- find longitude of perigee - elliptical equatorial ----
+          if ecc > small and typeorbit == 'ee':
 
-         else:
-             lonper= undefined;
+              temp= ebar[0]/ecc;
+              if fabs(temp) > 1.0:
+                  temp = copysign(1.0, temp)
+              lonper= acos( temp );
+              if ebar[1] < 0.0:
+                  lonper= twopi - lonper;
+              if incl > halfpi:
+                  lonper= twopi - lonper;
 
-         #  -------- find true longitude - circular equatorial ------
-         if magr > small and typeorbit == 'ce':
+          else:
+              lonper= undefined;
 
-             temp= r[0]/magr;
-             if fabs(temp) > 1.0:
-                 temp = copysign(1.0, temp)
-             truelon= acos( temp );
-             if r[1] < 0.0:
-                 truelon= twopi - truelon;
-             if incl > halfpi:
-                 truelon= twopi - truelon;
-             m = truelon;
+          #  -------- find true longitude - circular equatorial ------
+          if magr > small and typeorbit == 'ce':
 
-         else:
-             truelon= undefined;
+              temp= r[0]/magr;
+              if fabs(temp) > 1.0:
+                  temp = copysign(1.0, temp)
+              truelon= acos( temp );
+              if r[1] < 0.0:
+                  truelon= twopi - truelon;
+              if incl > halfpi:
+                  truelon= twopi - truelon;
+              m = truelon;
 
-         #  ------------ find mean anomaly for all orbits -----------
-         if typeorbit[0] == 'e':
-             e, m = newtonnu(ecc, nu);
+          else:
+              truelon= undefined;
+
+          #  ------------ find mean anomaly for all orbits -----------
+          if typeorbit[0] == 'e':
+              e, m = newtonnu(ecc, nu);
 
      else:
-        p    = undefined;
-        a    = undefined;
-        ecc  = undefined;
-        incl = undefined;
-        omega= undefined;
-        argp = undefined;
-        nu   = undefined;
-        m    = undefined;
-        arglat = undefined;
-        truelon= undefined;
-        lonper = undefined;
+          p    = undefined;
+          a    = undefined;
+          ecc  = undefined;
+          incl = undefined;
+          omega= undefined;
+          argp = undefined;
+          nu   = undefined;
+          m    = undefined;
+          arglat = undefined;
+          truelon= undefined;
+          lonper = undefined;
 
      return p, a, ecc, incl, omega, argp, nu, m, arglat, truelon, lonper
 
